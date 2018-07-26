@@ -18,19 +18,20 @@ contract ERC20Interface {
 contract MyFirsttoken is ERC20Interface {
     
     address public owner;
-    uint totalsupply;
+    uint256 totalsupply;
     string tokenname;
     string tokensymbol;
     uint8 decimal;
     mapping(address=>uint256)public balances;
+    mapping(address =>mapping(address=>uint256)) internal allowed;
     
-    function MyFirsttoken(uint tokensupply,uint8 decimals, string symbol, string name){
-    balances[owner] = totalsupply;   
+    function MyFirsttoken(uint256 tokensupply, string symbol, string name){
+    
+    owner = msg.sender;
     totalsupply = tokensupply;
-    decimal = decimals;
     tokenname =   name;  
     tokensymbol = symbol;    
-    
+    balances[owner] = totalsupply;
     }
     
     function totalSupply()public constant returns(uint){
@@ -38,7 +39,7 @@ contract MyFirsttoken is ERC20Interface {
         
     }
     
-    function balanceOf(address tokenholder)public constant returns(uint balance){
+    function balanceOf(address tokenholder)public constant returns(uint256 balance){
         return balances[owner];
     }
     
@@ -46,7 +47,7 @@ contract MyFirsttoken is ERC20Interface {
     
     
     
-    function transfer(address tos,uint amount)public returns(bool success){
+    function transfer(address tos,uint amount) public returns(bool)  {
     require(amount <= balances[msg.sender]);
     balances[msg.sender]-= amount;
     balances[tos] +=amount;
@@ -54,16 +55,25 @@ contract MyFirsttoken is ERC20Interface {
     }    
     
     
-    function transferFrom(address from, address to ,uint tokens)public returns (bool success){
+    function transferFrom(address from, address to ,uint256 tokens)public returns (bool success){
         
         
-        uint allowedbalance = allowance(from ,to);
+        uint256 allowedbalance = allowance(from ,to);
         require(tokens <= allowedbalance);
         balances[from] -= tokens;
         balances[to] += tokens;
         emit Transfer(from,to,tokens);
         
         
+    }
+    
+    function allowance(address tokenOwner, address spender) public constant returns(uint){
+        return allowed[tokenOwner][spender];
+    }
+    
+    function approve(address spender,uint256 amount) public returns(bool success){
+        allowed[msg.sender][spender]=amount;
+        emit Approval(msg.sender,spender,amount);
     }
     
 }
